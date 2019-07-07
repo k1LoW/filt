@@ -150,7 +150,7 @@ var rootCmd = &cobra.Command{
 					current := outView.GetText(false)
 					line := strings.Count(current, "\n")
 					outView.Unlock()
-					if line > bufferDisplayLine*10 {
+					if line > bufferDisplayLine*2 {
 						splitted := strings.SplitAfterN(current, "\n", line-bufferDisplayLine)
 						outView.SetText(strings.TrimSuffix(splitted[line-bufferDisplayLine-1], "\n"))
 					}
