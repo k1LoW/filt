@@ -39,6 +39,8 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+const bufferDisplayLine = 200
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "[STDIN] | filt",
@@ -136,7 +138,6 @@ var rootCmd = &cobra.Command{
 			AddItem(outView, 1, 0, 1, 1, 0, 0, true)
 
 		go func() {
-			bufferDisplayLine := 200
 			t1 := time.NewTicker(10 * time.Millisecond)
 			t2 := time.NewTicker(500 * time.Millisecond)
 		L:
@@ -182,7 +183,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().BoolP("version", "v", false, "version of filt")
+	rootCmd.Flags().BoolP("version", "v", false, "print the version")
 }
 
 func tuneCommand(command string) string {
