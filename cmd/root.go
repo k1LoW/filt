@@ -135,7 +135,7 @@ var rootCmd = &cobra.Command{
 			SetColumns(0).
 			SetBorders(false).
 			AddItem(inputField, 0, 0, 1, 1, 0, 0, true).
-			AddItem(outView, 1, 0, 1, 1, 0, 0, true)
+			AddItem(outView, 1, 0, 1, 1, 0, 0, false)
 
 		go func() {
 			t1 := time.NewTicker(10 * time.Millisecond)
