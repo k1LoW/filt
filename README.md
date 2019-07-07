@@ -1,6 +1,6 @@
 # filt
 
-`filt` is a interactive/realtime stream filter
+`filt` is a interactive/realtime stream filter.
 
 ## Usage
 
