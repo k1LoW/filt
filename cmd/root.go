@@ -33,6 +33,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell"
+	"github.com/k1LoW/filt/version"
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
@@ -44,6 +45,17 @@ var rootCmd = &cobra.Command{
 	Short: "filt is a interactive/realtime stream filter",
 	Long:  `filt is a interactive/realtime stream filter.`,
 	Args: func(cmd *cobra.Command, args []string) error {
+		// `--version` option
+		versionVal, err := cmd.Flags().GetBool("version")
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(1)
+		}
+		if versionVal {
+			fmt.Println(version.Version)
+			os.Exit(0)
+		}
+
 		if terminal.IsTerminal(0) {
 			return errors.New("filt need STDIN. Please use pipe")
 		}
@@ -169,8 +181,10 @@ func Execute() {
 	}
 }
 
+func init() {
+	rootCmd.Flags().BoolP("version", "v", false, "version of filt")
+}
+
 func tuneCommand(command string) string {
 	return strings.Replace(command, "grep ", "grep --line-buffered ", -1)
 }
-
-func init() {}
