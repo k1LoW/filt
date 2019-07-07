@@ -122,8 +122,8 @@ var rootCmd = &cobra.Command{
 						}
 					}
 					output = NewOutput(ctx)
-					outView.Clear()
 					output.Handle(stdout, w)
+					outView.Clear()
 					currentInputStr = inputStr
 				case tcell.KeyCtrlC:
 					app.Stop()
