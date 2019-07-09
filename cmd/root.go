@@ -80,6 +80,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		history := []string{}
+		var s *Subprocess
 
 	LL:
 		for {
@@ -88,10 +89,6 @@ var rootCmd = &cobra.Command{
 				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 				os.Exit(1)
 			}
-
-			var (
-				s *Subprocess
-			)
 
 		L:
 			for {
