@@ -25,25 +25,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
-	"time"
 
-	"github.com/gdamore/tcell"
+	"github.com/c-bata/go-prompt"
 	"github.com/k1LoW/filt/version"
-	"github.com/rivo/tview"
+	"github.com/nsf/termbox-go"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-const bufferDisplayLine = 200
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "[STDIN] | filt",
+	Use:   "[COMMAND] | filt",
 	Short: "filt is a interactive/realtime stream filter",
 	Long:  `filt is a interactive/realtime stream filter.`,
 	Args: func(cmd *cobra.Command, args []string) error {
@@ -77,100 +73,72 @@ var rootCmd = &cobra.Command{
 			log.SetOutput(debug)
 		}
 
-		var w io.Writer
 		output := NewOutput(ctx)
-		app := tview.NewApplication()
 
-		var (
-			inputStr        string
-			currentInputStr string
-			s               *Subprocess
-		)
-
-		outView := tview.NewTextView().
-			SetTextColor(tcell.ColorDefault).
-			SetRegions(true).
-			SetDynamicColors(true)
-
-		inputField := tview.NewInputField().
-			SetLabel("STDOUT | ").
-			SetLabelColor(tcell.ColorDarkCyan).
-			SetFieldTextColor(tcell.ColorWhite).
-			SetFieldBackgroundColor(tcell.ColorDarkCyan).
-			SetPlaceholderTextColor(tcell.ColorSilver).
-			SetPlaceholder("grep -e GET").
-			SetChangedFunc(func(text string) {
-				inputStr = text
-			}).
-			SetDoneFunc(func(key tcell.Key) {
-				switch key {
-				case tcell.KeyEnter:
-					s.Kill()
-					log.Printf("command: %s", inputStr)
-					s = NewSubprocess(ctx, tuneCommand(inputStr))
-					output.Stop()
-					stdout, err := s.Run(os.Stdin)
-					if err != nil {
-						log.Printf("err: %s", err)
-						_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-						inputStr = currentInputStr
-						s = NewSubprocess(ctx, tuneCommand(inputStr))
-						stdout, err = s.Run(os.Stdin)
-						if err != nil {
-							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-							os.Exit(1)
-						}
-					}
-					output = NewOutput(ctx)
-					output.Handle(stdout, w)
-					outView.Clear()
-					currentInputStr = inputStr
-				case tcell.KeyCtrlC:
-					app.Stop()
-				}
-			})
-
-		grid := tview.NewGrid().
-			SetRows(1).
-			SetColumns(0).
-			SetBorders(false).
-			AddItem(inputField, 0, 0, 1, 1, 0, 0, true).
-			AddItem(outView, 1, 0, 1, 1, 0, 0, false)
-
-		go func() {
-			t1 := time.NewTicker(10 * time.Millisecond)
-			t2 := time.NewTicker(500 * time.Millisecond)
-		L:
-			for {
-				select {
-				case <-t1.C:
-					app.Draw()
-				case <-t2.C:
-					outView.Lock()
-					current := outView.GetText(false)
-					line := strings.Count(current, "\n")
-					outView.Unlock()
-					if line > bufferDisplayLine*2 {
-						splitted := strings.SplitAfterN(current, "\n", line-bufferDisplayLine)
-						outView.SetText(strings.TrimSuffix(splitted[line-bufferDisplayLine-1], "\n"))
-					}
-				case <-ctx.Done():
-					break L
-				}
-			}
-		}()
-
-		w = tview.ANSIWriter(outView)
-
-		err := output.Handle(os.Stdin, w)
+		err := output.Handle(os.Stdin, os.Stdout)
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
 		}
 
-		if err := app.SetRoot(grid, true).Run(); err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
+		history := []string{}
+
+	LL:
+		for {
+			err = termbox.Init()
+			if err != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+				os.Exit(1)
+			}
+
+			var (
+				s *Subprocess
+			)
+
+		L:
+			for {
+				switch ev := termbox.PollEvent(); ev.Type {
+				case termbox.EventKey:
+					switch ev.Key {
+					case termbox.KeyEnter, termbox.KeyCtrlC:
+						s.Kill()
+						output.Stop()
+						output = NewOutput(ctx)
+						output.Handle(os.Stdin, ioutil.Discard)
+						in := prompt.Input(">>> | ", completer,
+							prompt.OptionPrefixTextColor(prompt.Cyan),
+							prompt.OptionHistory(history),
+							prompt.OptionAddKeyBind(prompt.KeyBind{
+								Key: prompt.ControlC,
+								Fn: func(buf *prompt.Buffer) {
+									cancel()
+									termbox.Close()
+									os.Exit(0)
+								}}),
+						)
+						if in == "exit" {
+							termbox.Close()
+							break LL
+						}
+						history = append(history, in)
+						s = NewSubprocess(ctx, tuneCommand(in))
+						stdout, err := s.Run(os.Stdin)
+						if err != nil {
+							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+							os.Exit(1)
+						}
+						output.Stop()
+						output = NewOutput(ctx)
+						output.Handle(stdout, os.Stdout)
+						break L
+					default:
+					}
+				case termbox.EventError:
+					_, _ = fmt.Fprintf(os.Stderr, "%s\n", ev.Err)
+					os.Exit(1)
+				}
+			}
+			termbox.Close()
 		}
 	},
 }
@@ -184,6 +152,10 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().BoolP("version", "v", false, "print the version")
+}
+
+func completer(t prompt.Document) []prompt.Suggest {
+	return []prompt.Suggest{}
 }
 
 func tuneCommand(command string) string {
