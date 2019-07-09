@@ -28,7 +28,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/c-bata/go-prompt"
 	"github.com/k1LoW/filt/version"
@@ -121,7 +120,7 @@ var rootCmd = &cobra.Command{
 							break LL
 						}
 						history = append(history, in)
-						s = NewSubprocess(ctx, tuneCommand(in))
+						s = NewSubprocess(ctx, in)
 						stdout, err := s.Run(os.Stdin)
 						if err != nil {
 							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -145,7 +144,7 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}
 }
@@ -156,8 +155,4 @@ func init() {
 
 func completer(t prompt.Document) []prompt.Suggest {
 	return []prompt.Suggest{}
-}
-
-func tuneCommand(command string) string {
-	return strings.Replace(command, "grep ", "grep --line-buffered ", -1)
 }
