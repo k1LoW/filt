@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type Subprocess struct {
@@ -32,7 +33,7 @@ func (p *Subprocess) Run(in io.Reader) (io.Reader, error) {
 		return in, nil
 	}
 	r, w := io.Pipe()
-	cmd := exec.CommandContext(p.ctx, "bash", "-c", p.command)
+	cmd := exec.CommandContext(p.ctx, "bash", "-c", tuneCommand(p.command))
 	cmd.Stdout = w
 	cmd.Stderr = w
 	cmd.Stdin = in
@@ -56,4 +57,8 @@ func (p *Subprocess) Kill() {
 		return
 	}
 	p.cancel()
+}
+
+func tuneCommand(command string) string {
+	return strings.Replace(command, "grep ", "grep --line-buffered ", -1)
 }
