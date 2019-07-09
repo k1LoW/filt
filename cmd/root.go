@@ -42,7 +42,6 @@ var rootCmd = &cobra.Command{
 	Short: "filt is a interactive/realtime stream filter",
 	Long:  `filt is a interactive/realtime stream filter.`,
 	Args: func(cmd *cobra.Command, args []string) error {
-		// `--version` option
 		versionVal, err := cmd.Flags().GetBool("version")
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -104,8 +103,18 @@ var rootCmd = &cobra.Command{
 						output.Stop()
 						output = NewOutput(ctx)
 						output.Handle(os.Stdin, ioutil.Discard)
-						in := prompt.Input(">>> | ", completer,
+						in := prompt.Input(">>> | ", func(in prompt.Document) []prompt.Suggest {
+							s := []prompt.Suggest{}
+							for _, h := range history {
+								s = append(s, prompt.Suggest{Text: h})
+							}
+							if in.Text == "" {
+								s = append(s, prompt.Suggest{Text: "exit", Description: "exit prompt"})
+							}
+							return prompt.FilterHasPrefix(s, in.GetWordBeforeCursor(), true)
+						},
 							prompt.OptionPrefixTextColor(prompt.Cyan),
+							prompt.OptionPreviewSuggestionTextColor(prompt.LightGray),
 							prompt.OptionHistory(history),
 							prompt.OptionAddKeyBind(prompt.KeyBind{
 								Key: prompt.ControlC,
@@ -119,13 +128,14 @@ var rootCmd = &cobra.Command{
 							termbox.Close()
 							break LL
 						}
-						history = append(history, in)
 						s = NewSubprocess(ctx, in)
 						stdout, err := s.Run(os.Stdin)
 						if err != nil {
 							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 							os.Exit(1)
 						}
+						history = unique(append(history, in))
+
 						output.Stop()
 						output = NewOutput(ctx)
 						output.Handle(stdout, os.Stdout)
@@ -153,6 +163,17 @@ func init() {
 	rootCmd.Flags().BoolP("version", "v", false, "print the version")
 }
 
-func completer(t prompt.Document) []prompt.Suggest {
-	return []prompt.Suggest{}
+func unique(strs []string) []string {
+	keys := make(map[string]bool)
+	uniqStrs := []string{}
+	for _, s := range strs {
+		if s == "" {
+			continue
+		}
+		if _, value := keys[s]; !value {
+			keys[s] = true
+			uniqStrs = append(uniqStrs, s)
+		}
+	}
+	return uniqStrs
 }
