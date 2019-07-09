@@ -34,11 +34,11 @@ func (o *Output) Handle(inn io.Reader, out io.Writer) error {
 				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 				os.Exit(1)
 			}
-			out.Write(b)
 			select {
 			case <-o.ctx.Done():
 				break L
 			default:
+				out.Write(b)
 			}
 		}
 	}()
