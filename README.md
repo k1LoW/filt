@@ -2,6 +2,8 @@
 
 `filt` is a interactive/realtime stream filter.
 
+![screencast](doc/screencast.svg)
+
 ## Usage
 
 ``` console
