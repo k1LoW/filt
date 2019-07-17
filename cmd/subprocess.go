@@ -33,6 +33,7 @@ func (p *Subprocess) Run(in io.Reader) (io.Reader, error) {
 		return in, nil
 	}
 	r, w := io.Pipe()
+	// #nosec
 	cmd := exec.CommandContext(p.ctx, "bash", "-c", tuneCommand(p.command))
 	cmd.Stdout = w
 	cmd.Stderr = w
@@ -40,14 +41,23 @@ func (p *Subprocess) Run(in io.Reader) (io.Reader, error) {
 	err := cmd.Start()
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-		w.Close()
+		err = w.Close()
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+		}
 		p.cancel()
 		return r, err
 	}
 	go func() {
-		_ = cmd.Wait()
+		err = cmd.Wait()
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+		}
+		err := w.Close()
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+		}
 		p.cancel()
-		w.Close()
 	}()
 	return r, nil
 }

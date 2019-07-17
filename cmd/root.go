@@ -99,7 +99,11 @@ var rootCmd = &cobra.Command{
 						s.Kill()
 						output.Stop()
 						output = NewOutput(ctx)
-						output.Handle(os.Stdin, ioutil.Discard)
+						err := output.Handle(os.Stdin, ioutil.Discard)
+						if err != nil {
+							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+							os.Exit(1)
+						}
 						in := prompt.Input(">>> | ", func(in prompt.Document) []prompt.Suggest {
 							s := []prompt.Suggest{}
 							for _, h := range history {
@@ -135,7 +139,11 @@ var rootCmd = &cobra.Command{
 
 						output.Stop()
 						output = NewOutput(ctx)
-						output.Handle(stdout, os.Stdout)
+						err = output.Handle(stdout, os.Stdout)
+						if err != nil {
+							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+							os.Exit(1)
+						}
 						break L
 					default:
 					}

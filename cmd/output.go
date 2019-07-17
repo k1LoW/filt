@@ -38,7 +38,11 @@ func (o *Output) Handle(inn io.Reader, out io.Writer) error {
 			case <-o.ctx.Done():
 				break L
 			default:
-				out.Write(b)
+				_, err = out.Write(b)
+				if err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+					os.Exit(1)
+				}
 			}
 		}
 	}()
