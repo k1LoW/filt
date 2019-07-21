@@ -30,10 +30,12 @@ import (
 	"os"
 
 	"github.com/c-bata/go-prompt"
+	"github.com/k1LoW/filt/output"
+	"github.com/k1LoW/filt/subprocess"
 	"github.com/k1LoW/filt/version"
+	"github.com/mattn/go-isatty"
 	"github.com/nsf/termbox-go"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -52,7 +54,7 @@ var rootCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		if terminal.IsTerminal(0) {
+		if isatty.IsTerminal(os.Stdin.Fd()) {
 			return errors.New("filt need STDIN. Please use pipe")
 		}
 		return nil
@@ -71,16 +73,16 @@ var rootCmd = &cobra.Command{
 			log.SetOutput(debug)
 		}
 
-		output := NewOutput(ctx)
+		o := output.NewOutput(ctx)
 
-		err := output.Handle(os.Stdin, os.Stdout)
+		err := o.Handle(os.Stdin, os.Stdout)
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
 		}
 
 		history := []string{}
-		var s *Subprocess
+		var s *subprocess.Subprocess
 
 	LL:
 		for {
@@ -97,9 +99,9 @@ var rootCmd = &cobra.Command{
 					switch ev.Key {
 					case termbox.KeyEnter, termbox.KeyCtrlC:
 						s.Kill()
-						output.Stop()
-						output = NewOutput(ctx)
-						err := output.Handle(os.Stdin, ioutil.Discard)
+						o.Stop()
+						o = output.NewOutput(ctx)
+						err := o.Handle(os.Stdin, ioutil.Discard)
 						if err != nil {
 							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 							os.Exit(1)
@@ -129,7 +131,7 @@ var rootCmd = &cobra.Command{
 							termbox.Close()
 							break LL
 						}
-						s = NewSubprocess(ctx, in)
+						s = subprocess.NewSubprocess(ctx, in)
 						stdout, err := s.Run(os.Stdin)
 						if err != nil {
 							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -137,9 +139,9 @@ var rootCmd = &cobra.Command{
 						}
 						history = unique(append(history, in))
 
-						output.Stop()
-						output = NewOutput(ctx)
-						err = output.Handle(stdout, os.Stdout)
+						o.Stop()
+						o = output.NewOutput(ctx)
+						err = o.Handle(stdout, os.Stdout)
 						if err != nil {
 							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 							os.Exit(1)
