@@ -52,7 +52,7 @@ var rootCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		if terminal.IsTerminal(0) {
+		if isatty.IsTerminal(os.Stdin.Fd()) {
 			return errors.New("filt need STDIN. Please use pipe")
 		}
 		return nil
