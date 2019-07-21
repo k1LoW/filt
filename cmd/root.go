@@ -98,8 +98,8 @@ var rootCmd = &cobra.Command{
 				case termbox.EventKey:
 					switch ev.Key {
 					case termbox.KeyEnter, termbox.KeyCtrlC:
-						s.Kill()
 						o.Stop()
+						s.Kill()
 						o = output.NewOutput(ctx)
 						err := o.Handle(os.Stdin, ioutil.Discard)
 						if err != nil {
