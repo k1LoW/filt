@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/c-bata/go-prompt v0.2.3
+	github.com/k1LoW/exec v0.1.0
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/go-isatty v0.0.8
 	github.com/mattn/go-runewidth v0.0.4 // indirect
