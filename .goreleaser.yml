@@ -24,7 +24,8 @@ snapshot:
   name_template: "{{ .Version }}-next"
 changelog:
   skip: true
-brew:
+brews:
+-
   name: filt
   github:
     owner: k1LoW

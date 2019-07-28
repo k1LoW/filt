@@ -34,8 +34,8 @@ depsdev:
 
 prerelease:
 	ghch -w -N ${VER}
-	git add CHANGELOG.md
 	gocredits . > CREDITS
+	git add CHANGELOG.md CREDITS
 	git commit -m'Bump up version number'
 	git tag ${VER}
 
