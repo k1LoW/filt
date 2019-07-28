@@ -51,7 +51,7 @@ func (p *Subprocess) Run(in io.Reader) (io.Reader, error) {
 	}
 	go func() {
 		err = cmd.Wait()
-		if err != nil {
+		if err != nil && err.Error() != "signal: killed" {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 		}
 		err := w.Close()
