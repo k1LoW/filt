@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"strings"
+
+	"github.com/k1LoW/exec"
 )
 
 type Subprocess struct {
