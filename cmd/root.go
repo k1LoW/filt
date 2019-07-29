@@ -74,10 +74,10 @@ var rootCmd = &cobra.Command{
 			log.SetOutput(debug)
 		}
 
-		i := input.NewInput(ctx, cancel)
+		i := input.NewInput()
 		o := output.NewOutput(ctx)
 
-		in := i.Handle(os.Stdin)
+		in := i.Handle(ctx, cancel, os.Stdin)
 
 		err := o.Handle(in, os.Stdout)
 		if err != nil {
