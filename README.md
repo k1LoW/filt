@@ -10,6 +10,12 @@
 $ tail -F /var/log/nginx/access.log | filt
 ```
 
+and `Enter` or `Ctrl+C`.
+
+### How to exit from filt prompt
+
+Input `exit` or `Ctrl+C` to prompt.
+
 ## Install
 
 **homebrew tap:**
