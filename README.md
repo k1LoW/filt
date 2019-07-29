@@ -34,6 +34,6 @@ Download binany from [releases page](https://github.com/k1LoW/filt/releases)
 $ go get github.com/k1LoW/filt
 ```
 
-## References
+## Alternatives
 
 - [up](https://github.com/akavel/up): up is the Ultimate Plumber, a tool for writing Linux pipes in a terminal-based UI interactively, with instant live preview of command results.
