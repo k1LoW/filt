@@ -30,6 +30,7 @@ import (
 	"os"
 
 	"github.com/c-bata/go-prompt"
+	"github.com/k1LoW/filt/input"
 	"github.com/k1LoW/filt/output"
 	"github.com/k1LoW/filt/subprocess"
 	"github.com/k1LoW/filt/version"
@@ -73,9 +74,12 @@ var rootCmd = &cobra.Command{
 			log.SetOutput(debug)
 		}
 
+		i := input.NewInput()
 		o := output.NewOutput(ctx)
 
-		err := o.Handle(os.Stdin, os.Stdout)
+		in := i.Handle(ctx, cancel, os.Stdin)
+
+		err := o.Handle(in, os.Stdout)
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
@@ -83,6 +87,13 @@ var rootCmd = &cobra.Command{
 
 		history := []string{}
 		var s *subprocess.Subprocess
+
+		go func() {
+			<-ctx.Done()
+			if termbox.IsInit {
+				termbox.Interrupt()
+			}
+		}()
 
 	LL:
 		for {
@@ -101,20 +112,20 @@ var rootCmd = &cobra.Command{
 						o.Stop()
 						s.Kill()
 						o = output.NewOutput(ctx)
-						err := o.Handle(os.Stdin, ioutil.Discard)
+						err := o.Handle(in, ioutil.Discard)
 						if err != nil {
 							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 							os.Exit(1)
 						}
-						in := prompt.Input(">>> | ", func(in prompt.Document) []prompt.Suggest {
+						inputStr := prompt.Input(">>> | ", func(d prompt.Document) []prompt.Suggest {
 							s := []prompt.Suggest{}
 							for _, h := range history {
 								s = append(s, prompt.Suggest{Text: h})
 							}
-							if in.Text == "" {
+							if d.Text == "" {
 								s = append(s, prompt.Suggest{Text: "exit", Description: "exit prompt"})
 							}
-							return prompt.FilterHasPrefix(s, in.GetWordBeforeCursor(), true)
+							return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
 						},
 							prompt.OptionPrefixTextColor(prompt.Cyan),
 							prompt.OptionPreviewSuggestionTextColor(prompt.LightGray),
@@ -127,17 +138,23 @@ var rootCmd = &cobra.Command{
 									os.Exit(0)
 								}}),
 						)
-						if in == "exit" {
+						select {
+						case <-ctx.Done():
+							termbox.Close()
+							break LL
+						default:
+						}
+						if inputStr == "exit" {
 							termbox.Close()
 							break LL
 						}
-						s = subprocess.NewSubprocess(ctx, in)
-						stdout, err := s.Run(os.Stdin)
+						s = subprocess.NewSubprocess(ctx, inputStr)
+						stdout, err := s.Run(in)
 						if err != nil {
 							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 							os.Exit(1)
 						}
-						history = unique(append(history, in))
+						history = unique(append(history, inputStr))
 
 						o.Stop()
 						o = output.NewOutput(ctx)
@@ -147,11 +164,13 @@ var rootCmd = &cobra.Command{
 							os.Exit(1)
 						}
 						break L
-					default:
 					}
 				case termbox.EventError:
 					_, _ = fmt.Fprintf(os.Stderr, "%s\n", ev.Err)
 					os.Exit(1)
+				case termbox.EventInterrupt:
+					termbox.Close()
+					break LL
 				}
 			}
 			termbox.Close()
