@@ -1,6 +1,6 @@
 # filt [![GitHub release](https://img.shields.io/github/release/k1LoW/filt.svg)](https://github.com/k1LoW/filt/releases)
 
-`filt` is a interactive/realtime stream filter.
+`filt` is a interactive/realtime stream filter ( also known as _"trial-and-error pipe"_ ).
 
 ![screencast](doc/screencast.svg)
 
