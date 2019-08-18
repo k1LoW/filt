@@ -14,8 +14,6 @@ type Subprocess struct {
 	ctx     context.Context
 	cancel  context.CancelFunc
 	command string
-	in      io.Reader
-	out     io.Writer
 }
 
 // NewSubprocess ...
