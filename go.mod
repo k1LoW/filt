@@ -12,5 +12,6 @@ require (
 	github.com/nsf/termbox-go v0.0.0-20190624072549-eeb6cd0a1762
 	github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942 // indirect
 	github.com/spf13/cobra v0.0.5
+	github.com/spf13/viper v1.3.2
 	golang.org/x/sys v0.0.0-20190726091711-fc99dfbffb4e // indirect
 )

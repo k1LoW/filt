@@ -30,6 +30,7 @@ import (
 	"os"
 
 	"github.com/c-bata/go-prompt"
+	"github.com/k1LoW/filt/config"
 	"github.com/k1LoW/filt/input"
 	"github.com/k1LoW/filt/output"
 	"github.com/k1LoW/filt/subprocess"
@@ -39,9 +40,33 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const usageTemplate = `Usage:{{if .Runnable}}
+  {{.UseLine}}{{end}}{{if gt (len .Aliases) 0}}
+
+Aliases:
+  {{.NameAndAliases}}{{end}}{{if .HasExample}}
+
+Examples:
+{{.Example}}{{end}}{{if .HasAvailableSubCommands}}
+
+Available Commands:{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
+
+Flags:
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
+
+Global Flags:
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
+
+Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
+  {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
+
+Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
+`
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "[COMMAND] | filt",
+	Use:   "filt",
 	Short: "filt is a interactive/realtime stream filter",
 	Long:  `filt is a interactive/realtime stream filter.`,
 	Args: func(cmd *cobra.Command, args []string) error {
@@ -186,7 +211,9 @@ func Execute() {
 }
 
 func init() {
+	cobra.OnInitialize(config.Load)
 	rootCmd.Flags().BoolP("version", "v", false, "print the version")
+	rootCmd.SetUsageTemplate(usageTemplate)
 }
 
 func unique(strs []string) []string {
