@@ -22,7 +22,7 @@ func New(path string) *History {
 	}
 }
 
-func (h *History) Load() error {
+func (h *History) UseHistoryFile() error {
 	h.save = true
 	if _, err := os.Lstat(h.path); err != nil {
 		return err

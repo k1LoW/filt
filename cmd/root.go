@@ -114,7 +114,7 @@ var rootCmd = &cobra.Command{
 
 		h := history.New(viper.GetString("history.path"))
 		if viper.GetBool("history.enable") {
-			err := h.Load()
+			err := h.UseHistoryFile()
 			if err != nil {
 				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 				os.Exit(1)
