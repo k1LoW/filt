@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.3.1](https://github.com/k1LoW/filt/compare/v0.3.0...v0.3.1) (2019-09-24)
+
+* Fix filt config output [#9](https://github.com/k1LoW/filt/pull/9) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.3.0](https://github.com/k1LoW/filt/compare/v0.2.1...v0.3.0) (2019-09-24)
 
 * Support pipe command history [#8](https://github.com/k1LoW/filt/pull/8) ([k1LoW](https://github.com/k1LoW))
