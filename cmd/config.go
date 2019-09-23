@@ -59,7 +59,9 @@ func runConfig(args []string) (int, error) {
 			}
 		}
 	case len(args) == 1:
-		fmt.Printf("%v", viper.Get(args[0]))
+		if config.IsExist(args[0]) {
+			fmt.Printf("%v\n", viper.Get(args[0]))
+		}
 	case len(args) == 2:
 		if err := config.Set(args[0], args[1]); err != nil {
 			return 1, err
