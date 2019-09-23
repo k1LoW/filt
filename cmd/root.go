@@ -31,6 +31,7 @@ import (
 
 	"github.com/c-bata/go-prompt"
 	"github.com/k1LoW/filt/config"
+	"github.com/k1LoW/filt/history"
 	"github.com/k1LoW/filt/input"
 	"github.com/k1LoW/filt/output"
 	"github.com/k1LoW/filt/subprocess"
@@ -38,6 +39,7 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/nsf/termbox-go"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 const usageTemplate = `Usage:{{if .Runnable}}
@@ -110,7 +112,7 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		history := []string{}
+		h := history.New(viper.GetString("history.path"))
 		var s *subprocess.Subprocess
 
 		go func() {
@@ -144,7 +146,7 @@ var rootCmd = &cobra.Command{
 						}
 						inputStr := prompt.Input(">>> | ", func(d prompt.Document) []prompt.Suggest {
 							s := []prompt.Suggest{}
-							for _, h := range history {
+							for _, h := range h.Raw() {
 								s = append(s, prompt.Suggest{Text: h})
 							}
 							if d.Text == "" {
@@ -154,7 +156,7 @@ var rootCmd = &cobra.Command{
 						},
 							prompt.OptionPrefixTextColor(prompt.Cyan),
 							prompt.OptionPreviewSuggestionTextColor(prompt.LightGray),
-							prompt.OptionHistory(history),
+							prompt.OptionHistory(h.Raw()),
 							prompt.OptionAddKeyBind(prompt.KeyBind{
 								Key: prompt.ControlC,
 								Fn: func(buf *prompt.Buffer) {
@@ -179,7 +181,11 @@ var rootCmd = &cobra.Command{
 							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 							os.Exit(1)
 						}
-						history = unique(append(history, inputStr))
+						err = h.Append(inputStr)
+						if err != nil {
+							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+							os.Exit(1)
+						}
 
 						o.Stop()
 						o = output.NewOutput(ctx)
@@ -214,19 +220,4 @@ func init() {
 	cobra.OnInitialize(config.Load)
 	rootCmd.Flags().BoolP("version", "v", false, "print the version")
 	rootCmd.SetUsageTemplate(usageTemplate)
-}
-
-func unique(strs []string) []string {
-	keys := make(map[string]bool)
-	uniqStrs := []string{}
-	for _, s := range strs {
-		if s == "" {
-			continue
-		}
-		if _, value := keys[s]; !value {
-			keys[s] = true
-			uniqStrs = append(uniqStrs, s)
-		}
-	}
-	return uniqStrs
 }
