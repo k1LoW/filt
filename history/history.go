@@ -53,7 +53,7 @@ func (h *History) Append(inputStr string) error {
 		if err := os.MkdirAll(dir, os.ModeDir|0700); err != nil {
 			return err
 		}
-		f, err := os.OpenFile(h.path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0700)
+		f, err := os.OpenFile(h.path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
 		if err != nil {
 			return err
 		}
