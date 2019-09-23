@@ -25,7 +25,7 @@ func New(path string) *History {
 func (h *History) UseHistoryFile() error {
 	h.save = true
 	if _, err := os.Lstat(h.path); err != nil {
-		return err
+		return nil
 	}
 	f, err := os.Open(h.path)
 	if err != nil {
