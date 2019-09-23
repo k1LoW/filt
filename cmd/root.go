@@ -113,6 +113,13 @@ var rootCmd = &cobra.Command{
 		}
 
 		h := history.New(viper.GetString("history.path"))
+		if viper.GetBool("history.enable") {
+			err := h.Load()
+			if err != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+				os.Exit(1)
+			}
+		}
 		var s *subprocess.Subprocess
 
 		go func() {
