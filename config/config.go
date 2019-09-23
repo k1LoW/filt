@@ -28,7 +28,7 @@ func Load() {
 
 // Set value to config
 func Set(k, v string) error {
-	if !isExist(k) {
+	if !IsExist(k) {
 		return errors.New("invalid config key")
 	}
 	viper.Set(k, v)
@@ -58,7 +58,7 @@ path = "{{ .history.path }}"
 	return nil
 }
 
-func isExist(k string) bool {
+func IsExist(k string) bool {
 	_, ok := configs[k]
 	return ok
 }
