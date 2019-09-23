@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -35,8 +34,6 @@ func TestSave(t *testing.T) {
 	defer os.RemoveAll(dir)
 	os.Setenv("XDG_CONFIG_HOME", dir)
 	Load()
-	fmt.Printf("%v\n", viper.AllSettings())
-
 	err = Set("history.path", "/path/to/save/history")
 	if err != nil {
 		t.Fatalf("%v", err)
