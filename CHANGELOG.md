@@ -2,11 +2,7 @@
 
 ## [v0.4.0](https://github.com/k1LoW/filt/compare/v0.3.1...v0.4.0) (2019-10-24)
 
-* Change `Enter` key action: 'show filt prompt' -> 'newline' [#10](https://github.com/k1LoW/filt/pull/10) ([k1LoW](https://github.com/k1LoW))
-
-## [v0.4.0](https://github.com/k1LoW/filt/compare/v0.3.1...v0.4.0) (2019-10-24)
-
-* Change `Enter` key action: 'show filt prompt' -> 'newline' [#10](https://github.com/k1LoW/filt/pull/10) ([k1LoW](https://github.com/k1LoW))
+* [BREAKING] Change `Enter` key action: 'show filt prompt' -> 'newline' [#10](https://github.com/k1LoW/filt/pull/10) ([k1LoW](https://github.com/k1LoW))
 
 ## [v0.3.1](https://github.com/k1LoW/filt/compare/v0.3.0...v0.3.1) (2019-09-24)
 
