@@ -10,7 +10,7 @@
 $ tail -F /var/log/nginx/access.log | filt
 ```
 
-and `Enter` or `Ctrl+C`.
+and `Ctrl+C`.
 
 ### How to exit from filt prompt
 

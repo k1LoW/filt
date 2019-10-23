@@ -108,7 +108,9 @@ var rootCmd = &cobra.Command{
 				switch ev := termbox.PollEvent(); ev.Type {
 				case termbox.EventKey:
 					switch ev.Key {
-					case termbox.KeyEnter, termbox.KeyCtrlC:
+					case termbox.KeyEnter:
+						_, _ = fmt.Fprintln(os.Stdout, "")
+					case termbox.KeyCtrlC:
 						o.Stop()
 						s.Kill()
 						o = output.NewOutput(ctx)
