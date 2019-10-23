@@ -16,6 +16,20 @@ and `Ctrl+C`.
 
 Input `exit` or `Ctrl+C` to prompt.
 
+### Enable or Disable saving history
+
+**Enable:**
+
+``` console
+$ filt config history.enable true
+```
+
+**Disable:**
+
+``` console
+$ filt config history.enable false
+```
+
 ## Install
 
 **homebrew tap:**
