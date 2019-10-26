@@ -99,7 +99,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		if buffered {
-			code, err = filter.BufferedFilter(os.Stdin, os.Stdout)
+			code, err = filter.BufferFilter(os.Stdin, os.Stdout)
 		} else {
 			code, err = filter.StreamFilter(os.Stdin, os.Stdout)
 		}

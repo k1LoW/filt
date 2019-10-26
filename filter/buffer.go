@@ -18,7 +18,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func BufferedFilter(stdin io.Reader, stdout io.Writer) (int, error) {
+func BufferFilter(stdin io.Reader, stdout io.Writer) (int, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
