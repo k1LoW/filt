@@ -22,24 +22,19 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
 
-	"github.com/c-bata/go-prompt"
 	"github.com/k1LoW/filt/config"
-	"github.com/k1LoW/filt/history"
-	"github.com/k1LoW/filt/input"
-	"github.com/k1LoW/filt/output"
-	"github.com/k1LoW/filt/subprocess"
 	"github.com/k1LoW/filt/version"
 	"github.com/mattn/go-isatty"
-	"github.com/nsf/termbox-go"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+)
+
+const (
+	exitStatusSuccess = iota
+	exitStatusError
 )
 
 const usageTemplate = `Usage:{{if .Runnable}}
@@ -88,133 +83,11 @@ var rootCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		log.SetOutput(ioutil.Discard)
-		if env := os.Getenv("DEBUG"); env != "" {
-			debug, err := os.Create("filt.debug")
-			if err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-				os.Exit(1)
-			}
-			log.SetOutput(debug)
-		}
-
-		i := input.NewInput()
-		o := output.NewOutput(ctx)
-
-		in := i.Handle(ctx, cancel, os.Stdin)
-
-		err := o.Handle(in, os.Stdout)
+		code, err := stream()
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
 		}
-
-		h := history.New(viper.GetString("history.path"))
-		if viper.GetBool("history.enable") {
-			err := h.UseHistoryFile()
-			if err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-				os.Exit(1)
-			}
-		}
-		var s *subprocess.Subprocess
-
-		go func() {
-			<-ctx.Done()
-			if termbox.IsInit {
-				termbox.Interrupt()
-			}
-		}()
-
-	LL:
-		for {
-			err = termbox.Init()
-			if err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-				os.Exit(1)
-			}
-
-		L:
-			for {
-				switch ev := termbox.PollEvent(); ev.Type {
-				case termbox.EventKey:
-					switch ev.Key {
-					case termbox.KeyEnter:
-						_, _ = fmt.Fprintln(os.Stdout, "")
-					case termbox.KeyCtrlC:
-						o.Stop()
-						s.Kill()
-						o = output.NewOutput(ctx)
-						err := o.Handle(in, ioutil.Discard)
-						if err != nil {
-							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-							os.Exit(1)
-						}
-						inputStr := prompt.Input(">>> | ", func(d prompt.Document) []prompt.Suggest {
-							s := []prompt.Suggest{}
-							for _, h := range h.Raw() {
-								s = append(s, prompt.Suggest{Text: h})
-							}
-							if d.Text == "" {
-								s = append(s, prompt.Suggest{Text: "exit", Description: "exit prompt"})
-							}
-							return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
-						},
-							prompt.OptionPrefixTextColor(prompt.Cyan),
-							prompt.OptionPreviewSuggestionTextColor(prompt.LightGray),
-							prompt.OptionHistory(h.Raw()),
-							prompt.OptionAddKeyBind(prompt.KeyBind{
-								Key: prompt.ControlC,
-								Fn: func(buf *prompt.Buffer) {
-									cancel()
-									termbox.Close()
-									os.Exit(0)
-								}}),
-						)
-						select {
-						case <-ctx.Done():
-							termbox.Close()
-							break LL
-						default:
-						}
-						if inputStr == "exit" {
-							termbox.Close()
-							break LL
-						}
-						s = subprocess.NewSubprocess(ctx, inputStr)
-						stdout, err := s.Run(in)
-						if err != nil {
-							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-							os.Exit(1)
-						}
-						err = h.Append(inputStr)
-						if err != nil {
-							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-							os.Exit(1)
-						}
-
-						o.Stop()
-						o = output.NewOutput(ctx)
-						err = o.Handle(stdout, os.Stdout)
-						if err != nil {
-							_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-							os.Exit(1)
-						}
-						break L
-					}
-				case termbox.EventError:
-					_, _ = fmt.Fprintf(os.Stderr, "%s\n", ev.Err)
-					os.Exit(1)
-				case termbox.EventInterrupt:
-					termbox.Close()
-					break LL
-				}
-			}
-			termbox.Close()
-		}
+		os.Exit(code)
 	},
 }
 
