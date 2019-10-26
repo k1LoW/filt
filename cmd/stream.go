@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 
@@ -20,14 +21,6 @@ func runStream() (int, error) {
 	defer cancel()
 
 	i := input.NewInput()
-	o := output.NewOutput(ctx)
-
-	in := i.Handle(ctx, cancel, os.Stdin)
-
-	err := o.Handle(in, os.Stdout)
-	if err != nil {
-		return exitStatusError, err
-	}
 
 	h := history.New(viper.GetString("history.path"))
 	if viper.GetBool("history.enable") {
@@ -36,11 +29,24 @@ func runStream() (int, error) {
 			return exitStatusError, err
 		}
 	}
-	var s *subprocess.Subprocess
+
+	var (
+		in io.Reader
+		o  *output.Output
+		s  *subprocess.Subprocess
+	)
+
+	in = i.Handle(ctx, cancel, os.Stdin)
 
 LL:
 	for {
-		err = termbox.Init()
+		err := termbox.Init()
+		if err != nil {
+			return exitStatusError, err
+		}
+
+		o = output.NewOutput(ctx)
+		err = o.Handle(in, os.Stdout)
 		if err != nil {
 			return exitStatusError, err
 		}
@@ -100,11 +106,7 @@ LL:
 					}
 
 					o.Stop()
-					o = output.NewOutput(ctx)
-					err = o.Handle(stdout, os.Stdout)
-					if err != nil {
-						return exitStatusError, err
-					}
+					in = stdout
 					break L
 				}
 			case termbox.EventError:
