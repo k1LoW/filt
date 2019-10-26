@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.5.0](https://github.com/k1LoW/filt/compare/v0.4.0...v0.5.0) (2019-10-26)
+
+* Create filter package [#15](https://github.com/k1LoW/filt/pull/15) ([k1LoW](https://github.com/k1LoW))
+* Fix stream output handle timing [#14](https://github.com/k1LoW/filt/pull/14) ([k1LoW](https://github.com/k1LoW))
+* Add `--buffered` option to buffer STDIN and filter [#13](https://github.com/k1LoW/filt/pull/13) ([k1LoW](https://github.com/k1LoW))
+* Refactor code [#12](https://github.com/k1LoW/filt/pull/12) ([k1LoW](https://github.com/k1LoW))
+* Use GitHub Actions [#11](https://github.com/k1LoW/filt/pull/11) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.4.0](https://github.com/k1LoW/filt/compare/v0.3.1...v0.4.0) (2019-10-24)
 
 * [BREAKING] Change `Enter` key action: 'show filt prompt' -> 'newline' [#10](https://github.com/k1LoW/filt/pull/10) ([k1LoW](https://github.com/k1LoW))
