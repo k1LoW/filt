@@ -1,30 +1,28 @@
 package cmd
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
+	"time"
 
 	"github.com/c-bata/go-prompt"
 	"github.com/k1LoW/filt/history"
-	"github.com/k1LoW/filt/input"
 	"github.com/k1LoW/filt/output"
 	"github.com/k1LoW/filt/subprocess"
+	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
 	"github.com/spf13/viper"
 )
 
-func runStream() (int, error) {
+func runBuffered() (int, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	i := input.NewInput()
-	o := output.NewOutput(ctx)
-
-	in := i.Handle(ctx, cancel, os.Stdin)
-
-	err := o.Handle(in, os.Stdout)
+	bufferedIn, err := bufferStdin(ctx, os.Stdin)
 	if err != nil {
 		return exitStatusError, err
 	}
@@ -36,11 +34,23 @@ func runStream() (int, error) {
 			return exitStatusError, err
 		}
 	}
-	var s *subprocess.Subprocess
 
+	var (
+		in io.Reader
+		o  *output.Output
+		s  *subprocess.Subprocess
+	)
+
+	in = bufferedIn // init in
 LL:
 	for {
 		err = termbox.Init()
+		if err != nil {
+			return exitStatusError, err
+		}
+
+		o = output.NewOutput(ctx)
+		err = o.Handle(in, os.Stdout)
 		if err != nil {
 			return exitStatusError, err
 		}
@@ -55,8 +65,7 @@ LL:
 				case termbox.KeyCtrlC:
 					o.Stop()
 					s.Kill()
-					o = output.NewOutput(ctx)
-					err := o.Handle(in, ioutil.Discard)
+					_, err = bufferedIn.Seek(0, io.SeekStart)
 					if err != nil {
 						return exitStatusError, err
 					}
@@ -90,7 +99,7 @@ LL:
 						break LL
 					}
 					s = subprocess.NewSubprocess(ctx, inputStr)
-					stdout, err := s.Run(in)
+					stdout, err := s.Run(bufferedIn)
 					if err != nil {
 						return exitStatusError, err
 					}
@@ -98,13 +107,7 @@ LL:
 					if err != nil {
 						return exitStatusError, err
 					}
-
-					o.Stop()
-					o = output.NewOutput(ctx)
-					err = o.Handle(stdout, os.Stdout)
-					if err != nil {
-						return exitStatusError, err
-					}
+					in = stdout
 					break L
 				}
 			case termbox.EventError:
@@ -116,4 +119,77 @@ LL:
 		termbox.Close()
 	}
 	return exitStatusSuccess, nil
+}
+
+func bufferStdin(ctx context.Context, stdin io.Reader) (*bytes.Reader, error) {
+	r := bufio.NewReader(stdin)
+	buf := bytes.NewBuffer(nil)
+	line := 0
+
+	ctxB, cancelB := context.WithCancel(ctx)
+	defer cancelB()
+	err := termbox.Init()
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		for {
+			switch ev := termbox.PollEvent(); ev.Type {
+			case termbox.EventKey:
+				select {
+				case <-ctxB.Done():
+					return
+				default:
+				}
+				switch ev.Key {
+				case termbox.KeyCtrlC:
+					// Cancel buffering
+					cancelB()
+					termbox.Close()
+					os.Exit(130) // 128 + SIGINT
+				}
+			}
+		}
+	}()
+
+E:
+	for {
+		err = termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+		if err != nil {
+			return nil, err
+		}
+		b, err := r.ReadBytes('\n')
+		if err == io.EOF {
+			break E
+		} else if err != nil {
+			termbox.Close()
+			return nil, err
+		}
+		select {
+		case <-ctx.Done():
+			break E
+		default:
+			_, err = buf.Write(b)
+			if err != nil {
+				termbox.Close()
+				return nil, err
+			}
+			line = line + 1
+			setCellString(1, 1, fmt.Sprintf("%d lines (%d bytes) buffered", line, len(buf.Bytes())), termbox.ColorCyan, termbox.ColorDefault)
+		}
+		termbox.Flush()
+	}
+	time.Sleep(1 * time.Second)
+	termbox.Close()
+
+	return bytes.NewReader(buf.Bytes()), nil
+}
+
+func setCellString(x, y int, s string, fg, bg termbox.Attribute) {
+	for _, r := range s {
+		termbox.SetCell(x, y, r, fg, bg)
+		w := runewidth.RuneWidth(r)
+		x += w
+	}
 }
