@@ -29,14 +29,10 @@ import (
 	"os"
 
 	"github.com/k1LoW/filt/config"
+	"github.com/k1LoW/filt/filter"
 	"github.com/k1LoW/filt/version"
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
-)
-
-const (
-	exitStatusSuccess = iota
-	exitStatusError
 )
 
 const usageTemplate = `Usage:{{if .Runnable}}
@@ -103,9 +99,9 @@ var rootCmd = &cobra.Command{
 		}
 
 		if buffered {
-			code, err = runBuffered()
+			code, err = filter.BufferedFilter(os.Stdin, os.Stdout)
 		} else {
-			code, err = runStream()
+			code, err = filter.StreamFilter(os.Stdin, os.Stdout)
 		}
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)

@@ -1,4 +1,4 @@
-package cmd
+package filter
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func runStream() (int, error) {
+func StreamFilter(stdin io.Reader, stdout io.Writer) (int, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -36,7 +36,7 @@ func runStream() (int, error) {
 		s  *subprocess.Subprocess
 	)
 
-	in = i.Handle(ctx, cancel, os.Stdin)
+	in = i.Handle(ctx, cancel, stdin)
 
 LL:
 	for {
@@ -46,7 +46,7 @@ LL:
 		}
 
 		o = output.NewOutput(ctx)
-		err = o.Handle(in, os.Stdout)
+		err = o.Handle(in, stdout)
 		if err != nil {
 			return exitStatusError, err
 		}
@@ -57,7 +57,7 @@ LL:
 			case termbox.EventKey:
 				switch ev.Key {
 				case termbox.KeyEnter:
-					_, _ = fmt.Fprintln(os.Stdout, "")
+					_, _ = fmt.Fprintln(stdout, "")
 				case termbox.KeyCtrlC:
 					o.Stop()
 					s.Kill()
@@ -96,7 +96,7 @@ LL:
 						break LL
 					}
 					s = subprocess.NewSubprocess(ctx, inputStr)
-					stdout, err := s.Run(in)
+					sOut, err := s.Run(in)
 					if err != nil {
 						return exitStatusError, err
 					}
@@ -106,7 +106,7 @@ LL:
 					}
 
 					o.Stop()
-					in = stdout
+					in = sOut
 					break L
 				}
 			case termbox.EventError:

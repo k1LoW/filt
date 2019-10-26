@@ -1,4 +1,4 @@
-package cmd
+package filter
 
 import (
 	"bufio"
@@ -18,11 +18,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-func runBuffered() (int, error) {
+func BufferedFilter(stdin io.Reader, stdout io.Writer) (int, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	bufferedIn, err := bufferStdin(ctx, os.Stdin)
+	bufferedIn, err := bufferStdin(ctx, stdin)
 	if err != nil {
 		return exitStatusError, err
 	}
@@ -50,7 +50,7 @@ LL:
 		}
 
 		o = output.NewOutput(ctx)
-		err = o.Handle(in, os.Stdout)
+		err = o.Handle(in, stdout)
 		if err != nil {
 			return exitStatusError, err
 		}
@@ -61,7 +61,7 @@ LL:
 			case termbox.EventKey:
 				switch ev.Key {
 				case termbox.KeyEnter:
-					_, _ = fmt.Fprintln(os.Stdout, "")
+					_, _ = fmt.Fprintln(stdout, "")
 				case termbox.KeyCtrlC:
 					o.Stop()
 					s.Kill()
@@ -99,7 +99,7 @@ LL:
 						break LL
 					}
 					s = subprocess.NewSubprocess(ctx, inputStr)
-					stdout, err := s.Run(bufferedIn)
+					sOut, err := s.Run(bufferedIn)
 					if err != nil {
 						return exitStatusError, err
 					}
@@ -107,7 +107,7 @@ LL:
 					if err != nil {
 						return exitStatusError, err
 					}
-					in = stdout
+					in = sOut
 					break L
 				}
 			case termbox.EventError:
@@ -176,7 +176,7 @@ E:
 				return nil, err
 			}
 			line = line + 1
-			setCellString(1, 1, fmt.Sprintf("%d lines (%d bytes) buffered", line, len(buf.Bytes())), termbox.ColorCyan, termbox.ColorDefault)
+			setCellString(0, 0, fmt.Sprintf("%d lines (%d bytes) buffered", line, len(buf.Bytes())), termbox.ColorCyan, termbox.ColorDefault)
 		}
 		err = termbox.Flush()
 		if err != nil {
