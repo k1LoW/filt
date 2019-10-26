@@ -1,4 +1,4 @@
 dist/
 coverage.txt
-*.log
+*.debug
 filt

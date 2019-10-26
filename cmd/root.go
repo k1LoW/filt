@@ -24,6 +24,8 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/k1LoW/filt/config"
@@ -61,6 +63,8 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
 Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
 `
 
+var buffered bool
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "filt",
@@ -83,7 +87,26 @@ var rootCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		code, err := stream()
+		var (
+			code int
+			err  error
+		)
+
+		log.SetOutput(ioutil.Discard)
+		if env := os.Getenv("DEBUG"); env != "" {
+			debug, err := os.Create("filt.debug")
+			if err != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+				os.Exit(1)
+			}
+			log.SetOutput(debug)
+		}
+
+		if buffered {
+			code, err = runBuffered()
+		} else {
+			code, err = runStream()
+		}
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 		}
@@ -100,6 +123,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(config.Load)
+	rootCmd.Flags().BoolVarP(&buffered, "buffered", "b", false, "filter buffered STDIN")
 	rootCmd.Flags().BoolP("version", "v", false, "print the version")
 	rootCmd.SetUsageTemplate(usageTemplate)
 }
