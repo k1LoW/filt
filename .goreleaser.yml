@@ -3,8 +3,20 @@ before:
     - go mod download
     - go mod tidy
 builds:
-- env:
-  - CGO_ENABLED=0
+-
+  id: filt-linux
+  env:
+    - CGO_ENABLED=0
+  goos:
+    - linux
+  ldflags:
+    - -s -w -X github.com/k1LoW/filt.version={{.Version}} -X github.com/k1LoW/filt.commit={{.FullCommit}} -X github.com/k1LoW/filt.date={{.Date}} -X github.com/k1LoW/filt/version.Version={{.Version}}
+-
+  id: filt-darwin
+  env:
+    - CGO_ENABLED=0
+  goos:
+    - darwin
   ldflags:
     - -s -w -X github.com/k1LoW/filt.version={{.Version}} -X github.com/k1LoW/filt.commit={{.FullCommit}} -X github.com/k1LoW/filt.date={{.Date}} -X github.com/k1LoW/filt/version.Version={{.Version}}
 archives:
@@ -36,3 +48,18 @@ brews:
   homepage: https://github.com/k1LoW/filt
   description: 'filt is a interactive/realtime stream filter.'
   install: bin.install 'filt'
+nfpms:
+  -
+    id: filt-nfpms
+    name_template: "{{ .ProjectName }}_{{ .Version }}-1_{{ .Arch }}"
+    builds:
+    - filt-linux
+    homepage: https://github.com/k1LoW/filt
+    maintainer: Ken'ichiro Oyama <k1lowxb@gmail.com>
+    description: filt is a interactive/realtime stream filter.
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    epoch: 1
