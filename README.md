@@ -12,9 +12,9 @@ $ tail -F /var/log/nginx/access.log | filt
 
 and enter `Ctrl+C`.
 
-### How to filter files (they are NOT stream) by trial and error
+### How to filter files by trial and error
 
-You can use `-b, --buffered` option
+You can use `--buffered` ( `-b` ) option
 
 ``` console
 $ cat /var/log/nginx/access.log | filt -b
