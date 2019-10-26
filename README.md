@@ -10,11 +10,21 @@
 $ tail -F /var/log/nginx/access.log | filt
 ```
 
-and `Ctrl+C`.
+and enter `Ctrl+C`.
+
+### How to filter files (they are NOT stream) by trial and error
+
+You can use `-b, --buffered` option
+
+``` console
+$ cat /var/log/nginx/access.log | filt -b
+```
+
+and enter `Ctrl+C`.
 
 ### How to exit from filt prompt
 
-Input `exit` or `Ctrl+C` to prompt.
+Input "exit" to prompt or enter `Ctrl+C`.
 
 ### Enable or Disable saving history
 
