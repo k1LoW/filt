@@ -178,7 +178,11 @@ E:
 			line = line + 1
 			setCellString(1, 1, fmt.Sprintf("%d lines (%d bytes) buffered", line, len(buf.Bytes())), termbox.ColorCyan, termbox.ColorDefault)
 		}
-		termbox.Flush()
+		err = termbox.Flush()
+		if err != nil {
+			termbox.Close()
+			return nil, err
+		}
 	}
 	time.Sleep(1 * time.Second)
 	termbox.Close()
