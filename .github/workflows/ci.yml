@@ -2,7 +2,7 @@ name: Test
 on: push
 jobs:
   build:
-    name: Build
+    name: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -12,7 +12,6 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: ${{ matrix.go_version }}
-        id: go
 
       - name: Install codecov
         run: sudo pip install codecov
