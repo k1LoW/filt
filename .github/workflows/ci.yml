@@ -1,8 +1,10 @@
-name: Test
+name: build
+
 on: push
+
 jobs:
-  build:
-    name: build
+  job-test:
+    name: Test
     runs-on: ubuntu-latest
     strategy:
       matrix:
