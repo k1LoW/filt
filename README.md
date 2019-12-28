@@ -1,4 +1,4 @@
-# filt [![GitHub release](https://img.shields.io/github/release/k1LoW/filt.svg)](https://github.com/k1LoW/filt/releases)
+# filt [![Build Status](https://github.com/k1LoW/filt/workflows/build/badge.svg)](https://github.com/k1LoW/filt/actions) [![GitHub release](https://img.shields.io/github/release/k1LoW/filt.svg)](https://github.com/k1LoW/filt/releases)
 
 `filt` is a interactive/realtime stream filter ( also known as _"trial-and-error pipe"_ ).
 
@@ -10,11 +10,21 @@
 $ tail -F /var/log/nginx/access.log | filt
 ```
 
-and `Ctrl+C`.
+and enter `Ctrl+C`.
+
+### How to filter files by trial and error
+
+You can use `--buffered` ( `-b` ) option
+
+``` console
+$ cat /var/log/nginx/access.log | filt -b
+```
+
+and enter `Ctrl+C`.
 
 ### How to exit from filt prompt
 
-Input `exit` or `Ctrl+C` to prompt.
+Input "exit" to prompt or enter `Ctrl+C`.
 
 ### Enable or Disable saving history
 

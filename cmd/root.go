@@ -31,6 +31,7 @@ import (
 
 	"github.com/c-bata/go-prompt"
 	"github.com/k1LoW/filt/config"
+	"github.com/k1LoW/filt/filter"
 	"github.com/k1LoW/filt/history"
 	"github.com/k1LoW/filt/input"
 	"github.com/k1LoW/filt/output"
@@ -66,6 +67,8 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
 Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
 `
 
+var buffered bool
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "filt",
@@ -88,6 +91,10 @@ var rootCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		var (
+			code int
+			err  error
+		)
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
@@ -101,12 +108,20 @@ var rootCmd = &cobra.Command{
 			log.SetOutput(debug)
 		}
 
+		if buffered {
+			code, err = filter.BufferFilter(os.Stdin, os.Stdout)
+			if err != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+			}
+			os.Exit(code)
+		}
+
 		i := input.NewInput()
 		o := output.NewOutput(ctx)
 
 		in := i.Handle(ctx, cancel, os.Stdin)
 
-		err := o.Handle(in, os.Stdout)
+		err = o.Handle(in, os.Stdout)
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
@@ -227,6 +242,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(config.Load)
+	rootCmd.Flags().BoolVarP(&buffered, "buffered", "b", false, "filter buffered STDIN")
 	rootCmd.Flags().BoolP("version", "v", false, "print the version")
 	rootCmd.SetUsageTemplate(usageTemplate)
 }
