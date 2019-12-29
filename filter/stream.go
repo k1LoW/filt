@@ -40,10 +40,9 @@ func StreamFilter(stdin io.Reader, stdout io.Writer) (int, error) {
 
 	var s *subprocess.Subprocess
 
-	go func() {
-		<-ctx.Done()
+	defer func() {
 		if termbox.IsInit {
-			termbox.Interrupt()
+			termbox.Close()
 		}
 	}()
 
@@ -60,7 +59,7 @@ LL:
 			case termbox.EventKey:
 				switch ev.Key {
 				case termbox.KeyEnter:
-					_, _ = fmt.Fprintln(os.Stdout, "")
+					_, _ = fmt.Fprintln(stdout, "")
 				case termbox.KeyCtrlC:
 					o.Stop()
 					s.Kill()
@@ -92,12 +91,10 @@ LL:
 					)
 					select {
 					case <-ctx.Done():
-						termbox.Close()
 						break LL
 					default:
 					}
 					if inputStr == "exit" {
-						termbox.Close()
 						break LL
 					}
 					s = subprocess.NewSubprocess(ctx, inputStr)
@@ -121,7 +118,6 @@ LL:
 			case termbox.EventError:
 				return exitStatusError, ev.Err
 			case termbox.EventInterrupt:
-				termbox.Close()
 				break LL
 			}
 		}
