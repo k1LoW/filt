@@ -23,9 +23,9 @@ func StreamFilter(stdin io.Reader, stdout io.Writer) (int, error) {
 	i := input.NewInput()
 	o := output.NewOutput(ctx)
 
-	in := i.Handle(ctx, cancel, os.Stdin)
+	in := i.Handle(ctx, cancel, stdin)
 
-	err := o.Handle(in, os.Stdout)
+	err := o.Handle(in, stdout)
 	if err != nil {
 		return exitStatusError, err
 	}
@@ -98,7 +98,7 @@ LL:
 						break LL
 					}
 					s = subprocess.NewSubprocess(ctx, inputStr)
-					stdout, err := s.Run(in)
+					subStdout, err := s.Run(in)
 					if err != nil {
 						return exitStatusError, err
 					}
@@ -109,7 +109,7 @@ LL:
 
 					o.Stop()
 					o = output.NewOutput(ctx)
-					err = o.Handle(stdout, os.Stdout)
+					err = o.Handle(subStdout, stdout)
 					if err != nil {
 						return exitStatusError, err
 					}
