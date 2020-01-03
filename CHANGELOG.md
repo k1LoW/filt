@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.6.0](https://github.com/k1LoW/filt/compare/v0.5.1...v0.6.0) (2020-01-03)
+
+* Keep output when filt exits [#20](https://github.com/k1LoW/filt/pull/20) ([k1LoW](https://github.com/k1LoW))
+* Re create filter/stream.go [#19](https://github.com/k1LoW/filt/pull/19) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.5.1](https://github.com/k1LoW/filt/compare/v0.5.0...v0.5.1) (2019-12-29)
 
 * Revert filter/stream [#18](https://github.com/k1LoW/filt/pull/18) ([k1LoW](https://github.com/k1LoW))
