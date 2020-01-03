@@ -44,6 +44,9 @@ func BufferFilter(stdin io.Reader, stdout io.Writer) (int, error) {
 	in = bufferedIn // init in
 LL:
 	for {
+		if termbox.IsInit {
+			termbox.Close()
+		}
 		err = termbox.Init()
 		if err != nil {
 			return exitStatusError, err
@@ -86,7 +89,6 @@ LL:
 							Key: prompt.ControlC,
 							Fn: func(buf *prompt.Buffer) {
 								cancel()
-								termbox.Close()
 								os.Exit(130) // 128 + SIGINT // FIXME: I want not to use os.Exit() in this scope.
 							}}),
 					)
@@ -116,7 +118,6 @@ LL:
 				break LL
 			}
 		}
-		termbox.Close()
 	}
 	return exitStatusSuccess, nil
 }

@@ -40,14 +40,11 @@ func StreamFilter(stdin io.Reader, stdout io.Writer) (int, error) {
 
 	var s *subprocess.Subprocess
 
-	defer func() {
+LL:
+	for {
 		if termbox.IsInit {
 			termbox.Close()
 		}
-	}()
-
-LL:
-	for {
 		err = termbox.Init()
 		if err != nil {
 			return exitStatusError, err
@@ -85,7 +82,6 @@ LL:
 							Key: prompt.ControlC,
 							Fn: func(buf *prompt.Buffer) {
 								cancel()
-								termbox.Close()
 								os.Exit(130) // 128 + SIGINT // FIXME: I want not to use os.Exit() in this scope.
 							}}),
 					)
@@ -121,7 +117,6 @@ LL:
 				break LL
 			}
 		}
-		termbox.Close()
 	}
 	return exitStatusSuccess, nil
 }
