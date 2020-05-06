@@ -47,11 +47,16 @@ brews:
     email: k1lowxb@gmail.com
   homepage: https://github.com/k1LoW/filt
   description: 'filt is a interactive/realtime stream filter.'
-  install: bin.install 'filt'
+  install: |
+    system './filt', 'completion', 'bash', '--out', 'filt.bash'
+    system './filt', 'completion', 'zsh', '--out', 'filt.zsh'
+    bin.install 'filt'
+    bash_completion.install 'filt.bash' => 'filt'
+    zsh_completion.install 'filt.zsh' => '_filt'
 nfpms:
   -
     id: filt-nfpms
-    name_template: "{{ .ProjectName }}_{{ .Version }}-1_{{ .Arch }}"
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}-1_{{ .Arch }}"
     builds:
     - filt-linux
     homepage: https://github.com/k1LoW/filt

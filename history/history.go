@@ -31,12 +31,15 @@ func (h *History) UseHistoryFile() error {
 	if err != nil {
 		return nil
 	}
-	defer f.Close()
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		h.data = append([]string{scanner.Text()}, h.data...)
 	}
 	if err := scanner.Err(); err != nil {
+		_ = f.Close()
+		return err
+	}
+	if err := f.Close(); err != nil {
 		return err
 	}
 	return nil
@@ -57,8 +60,10 @@ func (h *History) Append(inputStr string) error {
 		if err != nil {
 			return err
 		}
-		defer f.Close()
 		fmt.Fprintln(f, inputStr)
+		if err := f.Close(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
