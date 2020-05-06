@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.6.1](https://github.com/k1LoW/filt/compare/v0.6.0...v0.6.1) (2020-05-06)
+
+* Add `filt completion` [#21](https://github.com/k1LoW/filt/pull/21) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.6.0](https://github.com/k1LoW/filt/compare/v0.5.1...v0.6.0) (2020-01-03)
 
 * Keep output when filt exits [#20](https://github.com/k1LoW/filt/pull/20) ([k1LoW](https://github.com/k1LoW))
