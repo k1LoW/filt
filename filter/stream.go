@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func StreamFilter(stdin io.Reader, stdout io.Writer) (int, error) {
+func StreamFilter(stdin io.Reader, stdout io.Writer) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -25,16 +25,14 @@ func StreamFilter(stdin io.Reader, stdout io.Writer) (int, error) {
 
 	in := i.Handle(ctx, cancel, stdin)
 
-	err := o.Handle(in, stdout)
-	if err != nil {
-		return exitStatusError, err
+	if err := o.Handle(in, stdout); err != nil {
+		return err
 	}
 
 	h := history.New(viper.GetString("history.path"))
 	if viper.GetBool("history.enable") {
-		err := h.UseHistoryFile()
-		if err != nil {
-			return exitStatusError, err
+		if err := h.UseHistoryFile(); err != nil {
+			return err
 		}
 	}
 
@@ -45,9 +43,8 @@ LL:
 		if termbox.IsInit {
 			termbox.Close()
 		}
-		err = termbox.Init()
-		if err != nil {
-			return exitStatusError, err
+		if err := termbox.Init(); err != nil {
+			return err
 		}
 
 	L:
@@ -61,9 +58,8 @@ LL:
 					o.Stop()
 					s.Kill()
 					o = output.NewOutput(ctx)
-					err := o.Handle(in, ioutil.Discard)
-					if err != nil {
-						return exitStatusError, err
+					if err := o.Handle(in, ioutil.Discard); err != nil {
+						return err
 					}
 					inputStr := prompt.Input(">>> | ", func(d prompt.Document) []prompt.Suggest {
 						s := []prompt.Suggest{}
@@ -96,27 +92,25 @@ LL:
 					s = subprocess.NewSubprocess(ctx, inputStr)
 					subStdout, err := s.Run(in)
 					if err != nil {
-						return exitStatusError, err
+						return err
 					}
-					err = h.Append(inputStr)
-					if err != nil {
-						return exitStatusError, err
+					if err := h.Append(inputStr); err != nil {
+						return err
 					}
 
 					o.Stop()
 					o = output.NewOutput(ctx)
-					err = o.Handle(subStdout, stdout)
-					if err != nil {
-						return exitStatusError, err
+					if err := o.Handle(subStdout, stdout); err != nil {
+						return err
 					}
 					break L
 				}
 			case termbox.EventError:
-				return exitStatusError, ev.Err
+				return ev.Err
 			case termbox.EventInterrupt:
 				break LL
 			}
 		}
 	}
-	return exitStatusSuccess, nil
+	return nil
 }

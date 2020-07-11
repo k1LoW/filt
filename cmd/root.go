@@ -69,11 +69,10 @@ var rootCmd = &cobra.Command{
 	Args: func(cmd *cobra.Command, args []string) error {
 		versionVal, err := cmd.Flags().GetBool("version")
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
+			printFatalln(cmd, err)
 		}
 		if versionVal {
-			fmt.Println(version.Version)
+			cmd.Println(version.Version)
 			os.Exit(0)
 		}
 
@@ -84,37 +83,56 @@ var rootCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
-			code int
-			err  error
+			err error
 		)
-
-		log.SetOutput(ioutil.Discard)
-		if env := os.Getenv("DEBUG"); env != "" {
-			debug, err := os.Create("filt.debug")
-			if err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-				os.Exit(1)
-			}
-			log.SetOutput(debug)
-		}
-
 		if buffered {
-			code, err = filter.BufferFilter(os.Stdin, os.Stdout)
+			err = filter.BufferFilter(os.Stdin, os.Stdout)
 		} else {
-			code, err = filter.StreamFilter(os.Stdin, os.Stdout)
+			err = filter.StreamFilter(os.Stdin, os.Stdout)
 		}
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+			printFatalln(cmd, err)
 		}
-		os.Exit(code)
 	},
 }
 
 func Execute() {
+	rootCmd.SetOut(os.Stdout)
+	rootCmd.SetErr(os.Stderr)
+
+	log.SetOutput(ioutil.Discard)
+	if env := os.Getenv("DEBUG"); env != "" {
+		debug, err := os.Create("filt.debug")
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(1)
+		}
+		log.SetOutput(debug)
+	}
+
 	if err := rootCmd.Execute(); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}
+}
+
+// https://github.com/spf13/cobra/pull/894
+func printErrln(c *cobra.Command, i ...interface{}) {
+	c.PrintErr(fmt.Sprintln(i...))
+}
+
+func printErrf(c *cobra.Command, format string, i ...interface{}) {
+	c.PrintErr(fmt.Sprintf(format, i...))
+}
+
+func printFatalln(c *cobra.Command, i ...interface{}) {
+	printErrln(c, i...)
+	os.Exit(1)
+}
+
+func printFatalf(c *cobra.Command, format string, i ...interface{}) {
+	printErrf(c, format, i...)
+	os.Exit(1)
 }
 
 func init() {
