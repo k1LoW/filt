@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.7.0](https://github.com/k1LoW/filt/compare/v0.6.1...v0.7.0) (2020-07-11)
+
+* Refactor code [#23](https://github.com/k1LoW/filt/pull/23) ([k1LoW](https://github.com/k1LoW))
+* Support for filtering up to the middle of STDIN when buffering is canceled in buffering mode. [#22](https://github.com/k1LoW/filt/pull/22) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.6.1](https://github.com/k1LoW/filt/compare/v0.6.0...v0.6.1) (2020-05-06)
 
 * Add `filt completion` [#21](https://github.com/k1LoW/filt/pull/21) ([k1LoW](https://github.com/k1LoW))
