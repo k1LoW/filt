@@ -129,10 +129,10 @@ func bufferStdin(ctx context.Context, stdin io.Reader) (*bytes.Reader, error) {
 
 	ctxB, cancelB := context.WithCancel(ctx)
 	defer cancelB()
-	err := termbox.Init()
-	if err != nil {
+	if err := termbox.Init(); err != nil {
 		return nil, err
 	}
+	defer termbox.Close()
 
 	go func() {
 		for {
@@ -147,8 +147,6 @@ func bufferStdin(ctx context.Context, stdin io.Reader) (*bytes.Reader, error) {
 				case termbox.KeyCtrlC:
 					// Cancel buffering
 					cancelB()
-					termbox.Close()
-					os.Exit(130) // 128 + SIGINT
 				}
 			}
 		}
@@ -156,37 +154,34 @@ func bufferStdin(ctx context.Context, stdin io.Reader) (*bytes.Reader, error) {
 
 E:
 	for {
-		err = termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-		if err != nil {
+		if err := termbox.Clear(termbox.ColorDefault, termbox.ColorDefault); err != nil {
 			return nil, err
 		}
 		b, err := r.ReadBytes('\n')
 		if err == io.EOF {
 			break E
 		} else if err != nil {
-			termbox.Close()
 			return nil, err
 		}
 		select {
 		case <-ctx.Done():
 			break E
+		case <-ctxB.Done():
+			break E
 		default:
 			_, err = buf.Write(b)
 			if err != nil {
-				termbox.Close()
 				return nil, err
 			}
 			line = line + 1
 			setCellString(0, 0, fmt.Sprintf("%d lines (%d bytes) buffered", line, len(buf.Bytes())), termbox.ColorCyan, termbox.ColorDefault)
 		}
-		err = termbox.Flush()
-		if err != nil {
-			termbox.Close()
+		if err := termbox.Flush(); err != nil {
 			return nil, err
 		}
 	}
+
 	time.Sleep(1 * time.Second)
-	termbox.Close()
 
 	return bytes.NewReader(buf.Bytes()), nil
 }
