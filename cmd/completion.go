@@ -64,8 +64,7 @@ filt completion zsh > $fpath[1]/_filt
 		} else {
 			o, err = os.Create(out)
 			if err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-				os.Exit(1)
+				printFatalln(cmd, err)
 			}
 		}
 
@@ -73,19 +72,16 @@ filt completion zsh > $fpath[1]/_filt
 		case "bash":
 			if err := rootCmd.GenBashCompletion(o); err != nil {
 				_ = o.Close()
-				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-				os.Exit(1)
+				printFatalln(cmd, err)
 			}
 		case "zsh":
 			if err := rootCmd.GenZshCompletion(o); err != nil {
 				_ = o.Close()
-				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-				os.Exit(1)
+				printFatalln(cmd, err)
 			}
 		}
 		if err := o.Close(); err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
+			printFatalln(cmd, err)
 		}
 	},
 }

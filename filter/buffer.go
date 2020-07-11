@@ -18,20 +18,19 @@ import (
 	"github.com/spf13/viper"
 )
 
-func BufferFilter(stdin io.Reader, stdout io.Writer) (int, error) {
+func BufferFilter(stdin io.Reader, stdout io.Writer) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	bufferedIn, err := bufferStdin(ctx, stdin)
 	if err != nil {
-		return exitStatusError, err
+		return err
 	}
 
 	h := history.New(viper.GetString("history.path"))
 	if viper.GetBool("history.enable") {
-		err := h.UseHistoryFile()
-		if err != nil {
-			return exitStatusError, err
+		if err := h.UseHistoryFile(); err != nil {
+			return err
 		}
 	}
 
@@ -47,15 +46,13 @@ LL:
 		if termbox.IsInit {
 			termbox.Close()
 		}
-		err = termbox.Init()
-		if err != nil {
-			return exitStatusError, err
+		if err := termbox.Init(); err != nil {
+			return err
 		}
 
 		o = output.NewOutput(ctx)
-		err = o.Handle(in, stdout)
-		if err != nil {
-			return exitStatusError, err
+		if err := o.Handle(in, stdout); err != nil {
+			return err
 		}
 
 	L:
@@ -68,9 +65,8 @@ LL:
 				case termbox.KeyCtrlC:
 					o.Stop()
 					s.Kill()
-					_, err = bufferedIn.Seek(0, io.SeekStart)
-					if err != nil {
-						return exitStatusError, err
+					if _, err := bufferedIn.Seek(0, io.SeekStart); err != nil {
+						return err
 					}
 					inputStr := prompt.Input(">>> | ", func(d prompt.Document) []prompt.Suggest {
 						s := []prompt.Suggest{}
@@ -103,23 +99,22 @@ LL:
 					s = subprocess.NewSubprocess(ctx, inputStr)
 					sOut, err := s.Run(bufferedIn)
 					if err != nil {
-						return exitStatusError, err
+						return err
 					}
-					err = h.Append(inputStr)
-					if err != nil {
-						return exitStatusError, err
+					if err := h.Append(inputStr); err != nil {
+						return err
 					}
 					in = sOut
 					break L
 				}
 			case termbox.EventError:
-				return exitStatusError, ev.Err
+				return ev.Err
 			case termbox.EventInterrupt:
 				break LL
 			}
 		}
 	}
-	return exitStatusSuccess, nil
+	return nil
 }
 
 func bufferStdin(ctx context.Context, stdin io.Reader) (*bytes.Reader, error) {
@@ -164,13 +159,10 @@ E:
 			return nil, err
 		}
 		select {
-		case <-ctx.Done():
-			break E
 		case <-ctxB.Done():
 			break E
 		default:
-			_, err = buf.Write(b)
-			if err != nil {
+			if _, err := buf.Write(b); err != nil {
 				return nil, err
 			}
 			line = line + 1

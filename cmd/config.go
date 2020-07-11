@@ -23,8 +23,6 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
-	"os"
 
 	"github.com/k1LoW/filt/config"
 	"github.com/spf13/cobra"
@@ -37,42 +35,41 @@ var configCmd = &cobra.Command{
 	Short: "Get and set filt config",
 	Long:  `Get and set filt config.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		status, err := runConfig(args)
+		err := runConfig(cmd, args)
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err)
+			printFatalln(cmd, err)
 		}
-		os.Exit(status)
 	},
 }
 
-func runConfig(args []string) (int, error) {
+func runConfig(cmd *cobra.Command, args []string) error {
 	switch {
 	case len(args) == 0:
 		for k, v := range viper.AllSettings() {
 			switch v.(type) {
 			case map[string]interface{}:
 				for kk, vv := range v.(map[string]interface{}) {
-					fmt.Printf("%s.%s=%v\n", k, kk, vv)
+					cmd.Printf("%s.%s=%v\n", k, kk, vv)
 				}
 			default:
-				fmt.Printf("%s=%v\n", k, v)
+				cmd.Printf("%s=%v\n", k, v)
 			}
 		}
 	case len(args) == 1:
 		if config.IsExist(args[0]) {
-			fmt.Printf("%v\n", viper.Get(args[0]))
+			cmd.Printf("%v\n", viper.Get(args[0]))
 		}
 	case len(args) == 2:
 		if err := config.Set(args[0], args[1]); err != nil {
-			return 1, err
+			return err
 		}
 		if err := config.Save(); err != nil {
-			return 1, err
+			return err
 		}
 	default:
-		return 1, errors.New("invalid arguments")
+		return errors.New("invalid arguments")
 	}
-	return 0, nil
+	return nil
 }
 
 func init() {
