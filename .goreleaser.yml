@@ -66,5 +66,6 @@ nfpms:
     formats:
       - deb
       - rpm
+      - apk
     bindir: /usr/bin
     epoch: 1
