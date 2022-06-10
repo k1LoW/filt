@@ -39,7 +39,7 @@ changelog:
 brews:
 -
   name: filt
-  github:
+  tap:
     owner: k1LoW
     name: homebrew-tap
   commit_author:
@@ -48,11 +48,11 @@ brews:
   homepage: https://github.com/k1LoW/filt
   description: 'filt is a interactive/realtime stream filter.'
   install: |
-    system './filt', 'completion', 'bash', '--out', 'filt.bash'
-    system './filt', 'completion', 'zsh', '--out', 'filt.zsh'
     bin.install 'filt'
-    bash_completion.install 'filt.bash' => 'filt'
-    zsh_completion.install 'filt.zsh' => '_filt'
+    output = Utils.safe_popen_read("#{bin}/filt", 'completion', 'bash')
+    (bash_completion/'filt').write output
+    output = Utils.safe_popen_read("#{bin}/filt", 'completion', 'zsh')
+    (zsh_completion/'_filt').write output
 nfpms:
   -
     id: filt-nfpms
