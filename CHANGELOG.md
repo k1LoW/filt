@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.8.0](https://github.com/k1LoW/filt/compare/v0.7.0...v0.8.0) (2022-06-10)
+
+* Use completion by cobra [#26](https://github.com/k1LoW/filt/pull/26) ([k1LoW](https://github.com/k1LoW))
+* Update go and pkg version [#25](https://github.com/k1LoW/filt/pull/25) ([k1LoW](https://github.com/k1LoW))
+* Use octocov [#24](https://github.com/k1LoW/filt/pull/24) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.7.0](https://github.com/k1LoW/filt/compare/v0.6.1...v0.7.0) (2020-07-11)
 
 * Refactor code [#23](https://github.com/k1LoW/filt/pull/23) ([k1LoW](https://github.com/k1LoW))
