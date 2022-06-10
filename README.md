@@ -52,10 +52,10 @@ $ brew install k1LoW/tap/filt
 
 Download binany from [releases page](https://github.com/k1LoW/filt/releases)
 
-**go get:**
+**go install:**
 
 ```console
-$ go get github.com/k1LoW/filt
+$ go install github.com/k1LoW/filt@latest
 ```
 
 ## Alternatives
