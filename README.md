@@ -1,4 +1,4 @@
-# filt [![Build Status](https://github.com/k1LoW/filt/workflows/build/badge.svg)](https://github.com/k1LoW/filt/actions) [![GitHub release](https://img.shields.io/github/release/k1LoW/filt.svg)](https://github.com/k1LoW/filt/releases)
+# filt [![Build Status](https://github.com/k1LoW/filt/workflows/build/badge.svg)](https://github.com/k1LoW/filt/actions) [![GitHub release](https://img.shields.io/github/release/k1LoW/filt.svg)](https://github.com/k1LoW/filt/releases) ![Coverage](https://raw.githubusercontent.com/k1LoW/octocovs/main/badges/k1LoW/filt/coverage.svg) ![Code to Test Ratio](https://raw.githubusercontent.com/k1LoW/octocovs/main/badges/k1LoW/filt/ratio.svg) ![Test Execution Time](https://raw.githubusercontent.com/k1LoW/octocovs/main/badges/k1LoW/filt/time.svg)
 
 `filt` is a interactive/realtime stream filter ( also known as _"trial-and-error pipe"_ ).
 
