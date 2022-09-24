@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.8.1](https://github.com/k1LoW/filt/compare/v0.8.0...v0.8.1) (2022-09-25)
+
+* Update pkgs [#27](https://github.com/k1LoW/filt/pull/27) ([k1LoW](https://github.com/k1LoW))
+
+## [v0.8.1](https://github.com/k1LoW/filt/compare/v0.8.0...v0.8.1) (2022-09-25)
+
+* Update pkgs [#27](https://github.com/k1LoW/filt/pull/27) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.8.0](https://github.com/k1LoW/filt/compare/v0.7.0...v0.8.0) (2022-06-10)
 
 * Use completion by cobra [#26](https://github.com/k1LoW/filt/pull/26) ([k1LoW](https://github.com/k1LoW))
